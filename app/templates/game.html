@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Hangman - Lobby</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/hangmanlogo.jpg') }}" type="image/icon type">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <div id="currentTitle" class="title">
+        Lobby
+    </div>
+    <p></p>
+
+    
+    <div id="gamePanel" class="container">
+        <div class="drawContainer">
+            <strong><p>Word to guess: </p></strong>
+            <p></p>
+            <strong><p id="codedWord">_ _ _ _ _ _ _ _ _ _</p></strong>
+            <small id="privateWord"></small>
+            
+            <div class="hangmanDraw">
+                <br>
+                <img style="margin-left: 100px;" width="296px" height="264px" src="{{ url_for('static', filename='img/hangmanComplete.png') }}">
+            </div>
+
+    </div>
+
+    <div id="chatContainer" class="chatContainer">
+            <div id="chatMessages" class="chatMessages">
+            </div>
+            <p></p>
+            <label for="userMessage">Message: <input type="text" name="userMessage" id="userMessage"></label>
+            
+            <label for="MessageType">Message Type:</label>
+            <select name="MessageType" id="MessageType">
+              <option value="Letter">Letter</option>
+              <option value="Word">Word</option>
+              <option value="Chat">Chat</option>
+            </select>
+        </div>
+    </div>
+
+    <center>
+        <div id="waitingForWord" class="waitingForWord">
+            <p id="userSelectingWord"></p> 
+        </div>
+        <div id="userChooseControl" class="userChooseControl">
+            <p> Choose the word you want others to guess! </p>
+            <label for="wordToGuess"> Word: <input placeholder="Apple..." id="wordToGuess" type="text" name="wordToGuess"></label>
+            <p></p>
+            <button onclick="checkWord(document.getElementById('wordToGuess').value)" style="font-size: 20px; color: black; background-color: lightgreen; border-radius: 5px;"> Start Game </button>
+            <br><br>
+            <small id="wordError" style="color: red"></small>
+        </div>
+    </center>
+
+    <center>
+        <div id="lobbyPanel" class="userList">
+            <table id="usersConnected" style="text-align: center;" >
+            </table>
+
+            <p></p>
+            <p> Users ready: <span id="readyCounter"></span> </p>
+            <p></p>
+            <button onclick="userReady()" style="background-color: lightgreen; border-radius: 10px;" > READY </button>
+            <br>
+            <small id="readyStatus" style="color: red"> (You are NOT ready) </small>
+            <p></p>
+            <button id="startButton" onclick="sendStartGameRequest()" style="font-size: 20px; color: black; background-color: lightgreen; border-radius: 5px;"> START GAME! </button>
+            <br>
+            <small id="startError" style="color: red"></small>
+        </div>
+    </center>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/game-functions.js') }}"></script>
+    <script type="text/javascript" charset="utf-8">
+    	var socket = io();
+        var user = "{{ userName }}"
+        var alreadyConnected = []
+        var userIsReady = false
+
+        setUserConfiguration(user, userIsReady);
+        onLobbyEnter();
+
+        socket.on('getUserList', (users) => {
+            showUserList(users)
+        });
+
+        socket.on('updateUserList', (userToAdd) => {
+            addUserToList(userToAdd);
+        });
+
+        socket.on('removeUser', (userToRemove) => {
+            removeUserFromList(userToRemove);
+        });
+
+        socket.on('updateCounterAndUser', (params) => {
+            updateReadyCounter(params);
+        });
+
+        socket.on('updateSelfStatus', () => {
+            updateSelfStatus();
+        });
+
+        socket.on('startGameProcess', (userToChoose) => {
+            startGameProcess(userToChoose[0]);
+        });
+
+        socket.on('startGameError', () => {
+            startGameError();
+        });
+
+        socket.on('chooseWord', (userToChoose) => {
+            chooseWord(userToChoose);
+        });
+
+        socket.on('startGameForAll', (wordToGuess) => {
+            loadGame(wordToGuess);
+        });
+
+        socket.on('showUserAttempt', (userAttempt) => {
+            showUserAttempt(userAttempt);
+        });
+
+        socket.on('resetGame', () => {
+            resetGame();
+        });
+
+    </script>
+</body>
+
+</html>

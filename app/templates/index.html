@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Hangman</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/hangmanlogo.jpg') }}" type="image/icon type">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <div class="title">
+        Hangman Online Game
+    </div>
+    
+    <div class="InputSection">
+        <form action="/game" method="post">
+            <p>Enter your nickname in order to enter the game lobby!</p>
+            <label for="userName">Nickname: <input type="text" placeholder="Player..." name="userName" id="userName"></label>
+            <p></p>
+            <input id="enterButton" type="submit" value="Enter Game">
+            <br>
+            <small style="color: red">{{ invalid }}</small>
+        </form>
+    </div>
+</body>
+
+</html>

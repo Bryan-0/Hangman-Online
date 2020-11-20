@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@500&display=swap');
+
+* {
+    font-family: 'Source Code Pro', monospace;
+}
+
+.title {
+    text-align: center;
+    color: black;
+    font-size: xx-large;
+    text-shadow: 1px 1px gray;
+}
+
+.InputSection {
+    color: black;
+    text-align: center;
+    text-shadow: 0.5px 0.5px gray;
+}
+
+#gamePanel {
+    position:absolute;
+    text-align: center;
+    margin-left: 100px;
+    display: none;
+}
+
+#gamePanel > div {
+    float: left;
+    margin: 10px;
+    text-align: center;
+}
+
+.drawContainer {
+    text-align: center;
+    width: 500px;
+    height: 500px;
+    margin-right: 1rem;
+    box-shadow: 1px 1px gray;
+    background-color: lightblue;
+}
+
+.chatContainer {
+    text-align: center;
+    width: 500px;
+    height: 500px;
+}
+
+.chatMessages {
+    text-align: left;
+    width: 500px;
+    height: 460px;
+    box-shadow: 2px 2px 1px black;
+    background-color: lightgray;
+    box-sizing: border-box;
+    padding: 10px;
+    overflow-y:auto;
+    overflow-x:hidden;
+}
+
+.hangmanDraw {
+    width: 500px;
+    height: 300px;
+    text-align: center;
+}
+
+#waitingForWord {
+    display: none;
+}
+
+#userChooseControl {
+    display: none;
+}
+
+#userName {
+    color: black;
+    font-weight: bold;
+}
+
+#userMessage {
+    width: 400px;
+}
+
+#enterButton {
+    color: black;
+}
+
+#enterButton:hover {
+    text-shadow: 1px 1px gray;
+    border-radius: 5px;
+}
+
+table, th, td {
+    border: 1px solid gray;
+}
+
+#startButton {
+    display: none;
+}
