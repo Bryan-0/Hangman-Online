@@ -54,7 +54,8 @@ def disconnection():
 
 @socketio.on('AddUserName')
 def add_user(user):
-	UsersConfig.addUserToList(session['currentUser']) # TODO: change lists to dictionaries.
+	UsersConfig.addUserToList(session['currentUser']) 
+	# TODO: change lists to dictionaries.
 	# [0] = userName, [1] = userIsReady, [2] = userLost
 	print(UsersConfig.getUserList())
 	emit('updateUserList', user, broadcast = True, include_self = False)

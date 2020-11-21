@@ -1,6 +1,7 @@
 var user = ""
 var userIsReady = false
 var userIsHost = false
+var userColor = setUserColor()
 var privateWord = ""
 var encodedWord = ""
 var allAttempts = 27
@@ -9,6 +10,11 @@ var newWord = [];
 function setUserConfiguration(userName, userReady) {
     user = userName;
     userIsReady = userReady;
+}
+
+function setUserColor() {
+    let possibleColors = ["blue", "red", "green", "black", "purple", "yellowgreen", "palevioletred"]
+    return possibleColors[Math.floor(Math.random() * possibleColors.length)];
 }
 
 function userReady() {
@@ -167,7 +173,7 @@ function showUserAttempt(userAttempt) {
     let wordIsComplete = true;
     var chatScroll = document.getElementById('chatMessages');
     let currentChat = document.getElementById('chatMessages').innerHTML;
-    document.getElementById('chatMessages').innerHTML = currentChat + `<br>- ${userAttempt[1]}: ${userAttempt[0]}`;
+    document.getElementById('chatMessages').innerHTML = currentChat + `<br>- <span style="color: ${userColor}">${userAttempt[1]}</span>: ${userAttempt[0]}`;
     chatScroll.scrollTop = chatScroll.scrollHeight;
 
     if (userAttempt[2]) return;
