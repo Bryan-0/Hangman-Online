@@ -100,6 +100,12 @@ function sendMessage(userMessage, messageType) {
     } else if (messageType === "Word") {
         socket.emit('userAttempt', {'userMessage': userMessage, 'userName': user, 'userColor': userColor, 'isNotRated': false})
     } else if (messageType === "Chat") {
+
+        if (userMessage[0] === "/") {
+            socket.emit('userCommand', {'userCommand': userMessage, 'userName': user, 'userColor': userColor, 'isHost': userIsHost})
+            return;
+        }
+
         socket.emit('userAttempt', {'userMessage': userMessage, 'userName': user, 'userColor': userColor, 'isNotRated': true})
     }
 }
@@ -339,6 +345,26 @@ function resetGame() {
     }
 
     document.getElementById('lobbyPanel').style.display = 'block';
+}
+
+function getCommand(userInformation) {
+    switch(userInformation['userCommand']) {
+        case "/resetgame":
+            document.getElementById('chatMessages').innerHTML += `<br><strong style='color: red'>⚠ <span style="color: ${userInformation['userColor']}">${userInformation['userName']}</span> has used ${userInformation['userCommand']} command. (Going back to lobby in 10 seconds) </strong>`
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+            setTimeout(() => {
+                socket.emit('gameFinished')
+            }, 7000)
+            break;
+        default:
+            console.log("That's not a command.")
+            break;
+    }
+}
+
+function notEnoughAuthority() {
+    document.getElementById('chatMessages').innerHTML += `<br><strong style="color: red">⚠ You have to be the host in order to use commands.</strong>`
+    document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
 }
 
 var inputMessage = document.getElementById("userMessage");       

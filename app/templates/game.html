@@ -140,6 +140,14 @@
             userLostResponse(userWhoLost);
         });
 
+        socket.on('userUsedCommand', (userInformation) => {
+            getCommand(userInformation);
+        });
+
+        socket.on('notEnoughAuthority', () => {
+            notEnoughAuthority();
+        });
+
         socket.on('noOneGuessedTheWord', (word) => {
             noOneGuessedTheWord(word);
         });

@@ -110,6 +110,13 @@ def user_lost(userWhoLost):
 	if (UsersConfig.allUsersLost()):
 		emit('noOneGuessedTheWord', UsersConfig.getPrivateWord(), broadcast = True)
 
+@socketio.on('userCommand')
+def user_command(userInformation):
+	if userInformation['isHost']:
+		emit('userUsedCommand', userInformation, broadcast = True)
+	else:
+		emit('notEnoughAuthority')
+
 @socketio.on('gameFinished')
 def game_finished():
 	UsersConfig.setGameStatus(False)
