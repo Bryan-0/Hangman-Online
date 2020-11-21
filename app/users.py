@@ -5,8 +5,8 @@ class Users:
     def __init__(self):
         self.userList = []
         self.readyCounter = 0
-        self.allAttempts = 20
         self.gameStarted = False
+        self.privateWord = ""
     
     def getUserList(self):
         return self.userList
@@ -14,8 +14,8 @@ class Users:
     def getReadyCounter(self):
         return self.readyCounter
     
-    def getAllAttempts(self):
-        return self.allAttempts
+    def getPrivateWord(self):
+        return self.privateWord
     
     def getUsersReady(self):
         output = []
@@ -29,15 +29,15 @@ class Users:
 
     def setGameStatus(self, status):
         self.gameStarted = status
+    
+    def setPrivateWord(self, privateWord):
+        self.privateWord = privateWord
 
     def addReadyCounter(self):
         self.readyCounter += 1
 
     def minusReadyCounter(self):
         self.readyCounter -= 1
-
-    def minusAttempts(self):
-        self.allAttempts -= 1
     
     def addUserToList(self, user):
         self.userList.append(user)
@@ -45,7 +45,7 @@ class Users:
     def prepareUser(self, user):
         for index, name in enumerate(self.userList):
             if name[0] == user:
-                self.userList[index] = [name[0], True]
+                self.userList[index] = [name[0], True, False]
     
     def removeUserFromList(self, user):
         for index, name in enumerate(self.userList):
@@ -68,6 +68,18 @@ class Users:
                 continue
             return False
         return True
+
+    def allUsersLost(self):
+        for usersStatus in self.userList:
+            if usersStatus[2]:
+                continue
+            return False
+        return True
+    
+    def setPlayerLostStatus(self, userWhoLost):
+        for user in self.userList:
+            if user[0] == userWhoLost:
+                user[2] = True
     
     def chooseRandomPlayer(self):
         return random.choice(self.userList)
@@ -81,3 +93,7 @@ class Users:
     def clearUserStatus(self):
         for users in self.userList:
             users[1] = False
+            users[2] = False
+    
+    def clearPrivateWord(self):
+        self.privateWord = ""

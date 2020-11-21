@@ -3,7 +3,7 @@ var userIsReady = false
 var userIsHost = false
 var privateWord = ""
 var encodedWord = ""
-var allAttempts = 20
+var allAttempts = 27
 var newWord = [];
 
 function setUserConfiguration(userName, userReady) {
@@ -154,6 +154,11 @@ function loadGame(wordToGuess) {
     document.getElementById('waitingForWord').style.display = 'none';
     document.getElementById('currentTitle').innerHTML = 'Game';
     document.getElementById('codedWord').innerHTML = wordToGuess[1];
+    
+    if (!userIsHost) {
+        document.getElementById('thisUserAttempts').innerHTML = `Attempts Left: ${allAttempts}`;
+    }
+
     privateWord = wordToGuess[0]
     encodedWord = wordToGuess[1]
 }
@@ -177,7 +182,7 @@ function showUserAttempt(userAttempt) {
         })
 
         if (matches.length === 0) {
-            allAttempts -= 1;
+            socket.emit('userAttemptFail', userAttempt[1])
             return;
         } else {
             for (let [index, keyvalue] of matches.entries()) {
@@ -190,13 +195,9 @@ function showUserAttempt(userAttempt) {
                         newWord.push(value)
                     }
                 });
-                console.log(newWord)
                 encodedWord = newWord.join("");
-                console.log(encodedWord)
 
-                if (index === matches.length - 1) {
-                    console.log("Activate when about to finish this loop.")
-                } else {
+                if (index !== matches.length - 1) {
                     newWord = []
                 }
             }
@@ -228,7 +229,7 @@ function showUserAttempt(userAttempt) {
                 socket.emit('gameFinished')
             }, 7000)
         } else {
-            allAttempts -= 1;
+            socket.emit('userAttemptFail', userAttempt[1])
         }
     }
 
@@ -237,6 +238,64 @@ function showUserAttempt(userAttempt) {
         document.getElementById('codedWord').innerHTML = encodedWord;
         newWord = [];
     }
+    chatScroll.scrollTop = chatScroll.scrollHeight;
+}
+
+function removeAttempt(userWhoFail) {
+    if (userWhoFail === user) {
+        allAttempts -= 1;
+        document.getElementById('thisUserAttempts').innerHTML = `Attempts Left: ${allAttempts}`;
+        checkUserAttempts(allAttempts, userWhoFail);
+    }
+}
+
+function checkUserAttempts(userAttempts, currentUser) {
+    let hangmanDraw = document.getElementById('hangmanImage')
+
+    if (userAttempts >= 25 && userAttempts < 27) {
+        hangmanDraw.src = "/templates/img/hangmanComplete8.png";
+    } else if (userAttempts >= 22 && userAttempts < 25) {
+        hangmanDraw.src = "/templates/img/hangmanComplete7.png";
+    } else if (userAttempts >= 19 && userAttempts < 22) {
+        hangmanDraw.src = "/templates/img/hangmanComplete6.png";
+    } else if (userAttempts >= 16 && userAttempts < 19) {
+        hangmanDraw.src = "/templates/img/hangmanComplete5.png";
+    } else if (userAttempts >= 13 && userAttempts < 16) {
+        hangmanDraw.src = "/templates/img/hangmanComplete4.png";
+    } else if (userAttempts >= 10 && userAttempts < 13) {
+        hangmanDraw.src = "/templates/img/hangmanComplete3.png";
+    } else if (userAttempts >= 7 && userAttempts < 10) {
+        hangmanDraw.src = "/templates/img/hangmanComplete2.png";
+    } else if (userAttempts >= 4 && userAttempts < 7) {
+        hangmanDraw.src = "/templates/img/hangmanComplete1.png";
+    } else if (userAttempts >= 1 && userAttempts < 4) {
+        hangmanDraw.src = "/templates/img/hangmanComplete1.png";
+    } else if (userAttempts <= 0) {
+        socket.emit('userLost', currentUser)
+        hangmanDraw.src = "/templates/img/hangmanComplete.png";
+    }
+
+}
+
+function userLostResponse(userWhoLost) {
+    var chatScroll = document.getElementById('chatMessages');
+    if (userWhoLost === user) {
+        document.getElementById('userMessage').disabled = true;
+    }
+    document.getElementById('chatMessages').innerHTML += `<br><strong style='color: red'>⚠ ${userWhoLost} couldn't guess the word! (This user is not able to send messages until the game is over)</strong>`
+    chatScroll.scrollTop = chatScroll.scrollHeight;
+}
+
+function noOneGuessedTheWord(word) {
+    var chatScroll = document.getElementById('chatMessages');
+    document.getElementById('chatMessages').innerHTML += `<br><strong style='color: red'>⚠ Game is over! :(</strong>`
+    document.getElementById('chatMessages').innerHTML += `<br><strong style='color: green'>The word was: ${word}</strong>`
+    document.getElementById('chatMessages').innerHTML += `<br><strong style='color: green'>Better luck next time!</strong>`
+    document.getElementById('chatMessages').innerHTML += "<br>"
+    document.getElementById('chatMessages').innerHTML += "<br><strong style='color: red'>⚠ Going back to lobby in 15 seconds... </strong>"
+    setTimeout(() => {
+        socket.emit('gameFinished')
+    }, 15000)
     chatScroll.scrollTop = chatScroll.scrollHeight;
 }
 
@@ -249,14 +308,17 @@ function resetGame() {
     document.getElementById('startButton').style.display = 'none';
     document.getElementById('startError').innerHTML = "";
     document.getElementById('privateWord').innerHTML = "";
+    document.getElementById('thisUserAttempts').innerHTML = "";
     document.getElementById('wordToGuess').value = "";
     document.getElementById('userMessage').value = "";
     document.getElementById('MessageType').value = "Letter";
+    document.getElementById('userMessage').disabled = false;
+    document.getElementById('hangmanImage').src = "/templates/img/hangmanStart.png"
 
     userIsHost = false;
     userIsReady = false;
-    allAttempts = 20;
     newWord = []
+    allAttempts = 27;
 
     var table = document.getElementById("usersConnected");
 
@@ -284,6 +346,12 @@ inputMessage.addEventListener("keyup", function(event) {
 var chatOptions = document.getElementById("MessageType");
 chatOptions.onchange = (event) => {
     var inputText = event.target.value;
+
+    if (allAttempts <= 0) {
+        document.getElementById('userMessage').disabled = true;
+        return;
+    }
+
     if (inputText === "Letter" && userIsHost || inputText === "Word" && userIsHost) {
         document.getElementById('userMessage').disabled = true;
     } else {

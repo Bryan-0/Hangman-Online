@@ -26,7 +26,9 @@
             
             <div class="hangmanDraw">
                 <br>
-                <img style="margin-left: 100px;" width="296px" height="264px" src="{{ url_for('static', filename='img/hangmanComplete.png') }}">
+                <img id="hangmanImage" style="margin-left: 100px;" width="296px" height="264px" src="/templates/img/hangmanStart.png">
+                <br><br>
+                <p id="thisUserAttempts"></p>
             </div>
 
     </div>
@@ -127,6 +129,18 @@
 
         socket.on('showUserAttempt', (userAttempt) => {
             showUserAttempt(userAttempt);
+        });
+
+        socket.on('removeAttempt', (userWhoFail) => {
+            removeAttempt(userWhoFail);
+        });
+
+        socket.on('userLostResponse', (userWhoLost) => {
+            userLostResponse(userWhoLost);
+        });
+
+        socket.on('noOneGuessedTheWord', (word) => {
+            noOneGuessedTheWord(word);
         });
 
         socket.on('resetGame', () => {

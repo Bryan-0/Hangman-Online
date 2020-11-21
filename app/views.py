@@ -19,14 +19,11 @@ def index_page():
 def lobby_page():
 	userName = request.form['userName']
 
-	session['currentUser'] = [userName, False]
-	return render_template('game.html', userName = userName)
-
 	if (UsersConfig.isGameStarted()):
 		return redirect(url_for('index_page', error="GameAlreadyStarted"))
 
 	if (UsersConfig.isUniqueUserName(userName)):		
-		session['currentUser'] = [userName, False]
+		session['currentUser'] = [userName, False, False]
 		return render_template('game.html', userName = userName)
 	else:
 		return redirect(url_for('index_page', error="UserNameNotUnique"))
@@ -42,6 +39,7 @@ def disconnection():
 
 	if (len(UsersConfig.getUserList()) <= 1):
 		UsersConfig.setGameStatus(False)
+		UsersConfig.clearPrivateWord()
 
 	emit('updateCounterAndUser', [UsersConfig.getReadyCounter(), UsersConfig.getUsersReady()], broadcast = True)
 	emit('removeUser', session['currentUser'], broadcast = True)
@@ -51,7 +49,8 @@ def disconnection():
 
 @socketio.on('AddUserName')
 def add_user(user):
-	UsersConfig.addUserToList([user, False])
+	UsersConfig.addUserToList(session['currentUser']) # TODO: change lists to dictionaries.
+	# [0] = userName, [1] = userIsReady, [2] = userLost
 	print(UsersConfig.getUserList())
 	emit('updateUserList', user, broadcast = True, include_self = False)
 
@@ -67,6 +66,8 @@ def start_game_request():
 	if UsersConfig.allPlayersReady() and len(UsersConfig.getUserList()) >= 2:
 		UsersConfig.setGameStatus(True)
 		selectedUserName = UsersConfig.chooseRandomPlayer()
+		UsersConfig.setPlayerLostStatus(selectedUserName[0])
+		print(UsersConfig.getUserList())
 		emit('startGameProcess', selectedUserName, broadcast = True)
 		emit('chooseWord', selectedUserName, broadcast = True)
 	else:
@@ -75,17 +76,31 @@ def start_game_request():
 @socketio.on('startGameOficially')
 def start_game_officially(wordToGuess):
 	codedWord = len(wordToGuess) * " _"
+	UsersConfig.setPrivateWord(wordToGuess)
 	emit('startGameForAll', [wordToGuess, codedWord[1:]], broadcast = True)
 
 @socketio.on('userAttempt')
 def user_attempt(userAttempt):
 	emit('showUserAttempt', [userAttempt[0], userAttempt[1], userAttempt[2]], broadcast = True)
 
+@socketio.on('userAttemptFail')
+def user_fail(userWhoFail):
+	emit('removeAttempt', userWhoFail)
+
+@socketio.on('userLost')
+def user_lost(userWhoLost):
+	UsersConfig.setPlayerLostStatus(userWhoLost)
+	emit('userLostResponse', userWhoLost, broadcast = True)
+
+	if (UsersConfig.allUsersLost()):
+		emit('noOneGuessedTheWord', UsersConfig.getPrivateWord(), broadcast = True)
+
 @socketio.on('gameFinished')
 def game_finished():
 	UsersConfig.setGameStatus(False)
 	UsersConfig.clearUserStatus()
 	UsersConfig.clearReadyCounter()
+	UsersConfig.clearPrivateWord()
 	
 	emit('resetGame', broadcast = True)
 	emit('updateCounterAndUser', [UsersConfig.getReadyCounter(), UsersConfig.getUsersReady()], broadcast = True)
