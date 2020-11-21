@@ -35,6 +35,7 @@
 
     <div id="chatContainer" class="chatContainer">
             <div id="chatMessages" class="chatMessages">
+                <center><strong>Chat</strong></center>
             </div>
             <p></p>
             <label for="userMessage">Message: <input type="text" name="userMessage" id="userMessage"></label>
@@ -112,7 +113,7 @@
         });
 
         socket.on('startGameProcess', (userToChoose) => {
-            startGameProcess(userToChoose[0]);
+            startGameProcess(userToChoose['userName']);
         });
 
         socket.on('startGameError', () => {

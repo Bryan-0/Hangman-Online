@@ -28,7 +28,7 @@ def lobby_page():
 		return redirect(url_for('index_page', error="EmptyUserName"))
 
 	if (UsersConfig.isUniqueUserName(userName)):		
-		session['currentUser'] = [userName, False, False]
+		session['currentUser'] = {'userName': userName, 'userIsReady': False, 'userHasLost': False}
 		return render_template('game.html', userName = userName)
 	else:
 		return redirect(url_for('index_page', error="UserNameNotUnique"))
@@ -40,23 +40,31 @@ def connection():
 
 @socketio.on('disconnect')
 def disconnection():
-	UsersConfig.removeUserFromList(session['currentUser'][0])
+	resetGame = False
+	UsersConfig.removeUserFromList(session['currentUser']['userName'])
 
-	if (len(UsersConfig.getUserList()) <= 1):
+	if (len(UsersConfig.getUserList()) <= 1 and UsersConfig.isGameStarted()):
 		UsersConfig.setGameStatus(False)
 		UsersConfig.clearPrivateWord()
+		UsersConfig.clearReadyCounter()
+		UsersConfig.clearUserStatus()
+		resetGame = True
+		
+		
 
 	emit('updateCounterAndUser', [UsersConfig.getReadyCounter(), UsersConfig.getUsersReady()], broadcast = True)
 	emit('removeUser', session['currentUser'], broadcast = True)
 
 	session.pop('currentUser', None)
 	print(UsersConfig.getUserList())
+	
+	if resetGame:
+		print(UsersConfig.getUserList())
+		emit('resetGame', broadcast = True)
 
 @socketio.on('AddUserName')
 def add_user(user):
 	UsersConfig.addUserToList(session['currentUser']) 
-	# TODO: change lists to dictionaries.
-	# [0] = userName, [1] = userIsReady, [2] = userLost
 	print(UsersConfig.getUserList())
 	emit('updateUserList', user, broadcast = True, include_self = False)
 
@@ -64,6 +72,7 @@ def add_user(user):
 def prepare_user(userToPrepare):
 	UsersConfig.addReadyCounter()
 	UsersConfig.prepareUser(userToPrepare)
+	print(UsersConfig.getUserList())
 	emit('updateCounterAndUser', [UsersConfig.getReadyCounter(), [userToPrepare]], broadcast = True)
 	emit('updateSelfStatus')
 
@@ -72,7 +81,7 @@ def start_game_request():
 	if UsersConfig.allPlayersReady() and len(UsersConfig.getUserList()) >= 2:
 		UsersConfig.setGameStatus(True)
 		selectedUserName = UsersConfig.chooseRandomPlayer()
-		UsersConfig.setPlayerLostStatus(selectedUserName[0])
+		UsersConfig.setPlayerLostStatus(selectedUserName['userName'])
 		print(UsersConfig.getUserList())
 		emit('startGameProcess', selectedUserName, broadcast = True)
 		emit('chooseWord', selectedUserName, broadcast = True)
@@ -87,7 +96,7 @@ def start_game_officially(wordToGuess):
 
 @socketio.on('userAttempt')
 def user_attempt(userAttempt):
-	emit('showUserAttempt', [userAttempt[0], userAttempt[1], userAttempt[2]], broadcast = True)
+	emit('showUserAttempt', userAttempt, broadcast = True)
 
 @socketio.on('userAttemptFail')
 def user_fail(userWhoFail):
@@ -95,7 +104,7 @@ def user_fail(userWhoFail):
 
 @socketio.on('userLost')
 def user_lost(userWhoLost):
-	UsersConfig.setPlayerLostStatus(userWhoLost)
+	UsersConfig.setPlayerLostStatus(userWhoLost['userName'])
 	emit('userLostResponse', userWhoLost, broadcast = True)
 
 	if (UsersConfig.allUsersLost()):
@@ -107,6 +116,7 @@ def game_finished():
 	UsersConfig.clearUserStatus()
 	UsersConfig.clearReadyCounter()
 	UsersConfig.clearPrivateWord()
+	print(UsersConfig.getUserList())
 	
 	emit('resetGame', broadcast = True)
 	emit('updateCounterAndUser', [UsersConfig.getReadyCounter(), UsersConfig.getUsersReady()], broadcast = True)

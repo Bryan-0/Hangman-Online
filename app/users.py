@@ -20,8 +20,8 @@ class Users:
     def getUsersReady(self):
         output = []
         for users in self.userList:
-            if users[1]:
-                output.append(users[0])
+            if users['userIsReady']:
+                output.append(users['userName'])
         return output
 
     def isGameStarted(self):
@@ -43,14 +43,14 @@ class Users:
         self.userList.append(user)
     
     def prepareUser(self, user):
-        for index, name in enumerate(self.userList):
-            if name[0] == user:
-                self.userList[index] = [name[0], True, False]
+        for index, value in enumerate(self.userList):
+            if value['userName'] == user:
+                self.userList[index] = {'userName': value['userName'], 'userIsReady': True, 'userHasLost': False}
     
     def removeUserFromList(self, user):
-        for index, name in enumerate(self.userList):
-            if name[0] == user:
-                if self.userList[index][1]:
+        for index, value in enumerate(self.userList):
+            if value['userName'] == user:
+                if self.userList[index]['userIsReady']:
                     self.minusReadyCounter()
                     self.userList.pop(index)
                 else:
@@ -58,28 +58,28 @@ class Users:
     
     def isUniqueUserName(self, user):
         for names in self.userList:
-            if user == names[0]:
+            if user == names['userName']:
                 return False
         return True
     
     def allPlayersReady(self):
         for readyStatus in self.userList:
-            if readyStatus[1]:
+            if readyStatus['userIsReady']:
                 continue
             return False
         return True
 
     def allUsersLost(self):
         for usersStatus in self.userList:
-            if usersStatus[2]:
+            if usersStatus['userHasLost']:
                 continue
             return False
         return True
     
     def setPlayerLostStatus(self, userWhoLost):
         for user in self.userList:
-            if user[0] == userWhoLost:
-                user[2] = True
+            if user['userName'] == userWhoLost:
+                user['userHasLost'] = True
     
     def chooseRandomPlayer(self):
         return random.choice(self.userList)
@@ -92,8 +92,8 @@ class Users:
     
     def clearUserStatus(self):
         for users in self.userList:
-            users[1] = False
-            users[2] = False
+            users['userIsReady'] = False
+            users['userHasLost'] = False
     
     def clearPrivateWord(self):
         self.privateWord = ""

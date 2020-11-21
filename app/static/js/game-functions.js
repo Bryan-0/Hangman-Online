@@ -13,7 +13,7 @@ function setUserConfiguration(userName, userReady) {
 }
 
 function setUserColor() {
-    let possibleColors = ["blue", "red", "green", "black", "purple", "yellowgreen", "palevioletred"]
+    let possibleColors = ["blue", "red", "green", "black", "purple", "violet", "palevioletred", "maroon"]
     return possibleColors[Math.floor(Math.random() * possibleColors.length)];
 }
 
@@ -34,11 +34,11 @@ function onLobbyEnter() {
 
 function showUserList(users) {
     for (let index = 0; index < users.length; index++) {
-        if (users[index][0] === user) {
+        if (users[index]['userName'] === user) {
             continue
         }
 
-        document.getElementById("usersConnected").insertRow(-1).insertCell(-1).innerHTML = users[index][0];
+        document.getElementById("usersConnected").insertRow(-1).insertCell(-1).innerHTML = users[index]['userName'];
     }
 }
 
@@ -54,7 +54,7 @@ function removeUserFromList(userToRemove) {
         for( let [j,cell] of [...row.cells].entries() ) {
             console.log(`[${i}] = ${cell.innerText}`)
 
-            if (cell.innerText === userToRemove[0] || cell.innerText === `✅ ${userToRemove[0]}`) {
+            if (cell.innerText === userToRemove['userName'] || cell.innerText === `✅ ${userToRemove['userName']}`) {
                 rowToDelete = i;
             }
         }
@@ -96,11 +96,11 @@ function sendMessage(userMessage, messageType) {
     if (userMessage === "") return;
     
     if (messageType === "Letter") {
-        socket.emit('userAttempt', [userMessage[0], user, false])
+        socket.emit('userAttempt', {'userMessage': userMessage[0], 'userName': user, 'userColor': userColor, 'isNotRated': false})
     } else if (messageType === "Word") {
-        socket.emit('userAttempt', [userMessage, user, false])
+        socket.emit('userAttempt', {'userMessage': userMessage, 'userName': user, 'userColor': userColor, 'isNotRated': false})
     } else if (messageType === "Chat") {
-        socket.emit('userAttempt', [userMessage, user, true])
+        socket.emit('userAttempt', {'userMessage': userMessage, 'userName': user, 'userColor': userColor, 'isNotRated': true})
     }
 }
 
@@ -118,7 +118,7 @@ function startGameError() {
 
 function chooseWord(userToChoose) {
     // Verify user
-    if (userToChoose[0] == user) {
+    if (userToChoose['userName'] == user) {
         userIsHost = true;
         document.getElementById('waitingForWord').style.display = 'none';
         document.getElementById('userChooseControl').style.display = 'block';
@@ -173,30 +173,30 @@ function showUserAttempt(userAttempt) {
     let wordIsComplete = true;
     var chatScroll = document.getElementById('chatMessages');
     let currentChat = document.getElementById('chatMessages').innerHTML;
-    document.getElementById('chatMessages').innerHTML = currentChat + `<br>- <span style="color: ${userColor}">${userAttempt[1]}</span>: ${userAttempt[0]}`;
+    document.getElementById('chatMessages').innerHTML = currentChat + `<br>- <strong style="color: ${userAttempt['userColor']}">${userAttempt['userName']}</strong>: ${userAttempt['userMessage']}`;
     chatScroll.scrollTop = chatScroll.scrollHeight;
 
-    if (userAttempt[2]) return;
+    if (userAttempt['isNotRated']) return;
 
-    if (userAttempt[0].length === 1) {
+    if (userAttempt['userMessage'].length === 1) {
         var matches = []
         privateWord.split("").forEach((value, index) => {
             console.log(`${index} -> ${value}`)
-            if (value === userAttempt[0]) {
+            if (value === userAttempt['userMessage']) {
                 matches.push(index)
             }
         })
 
         if (matches.length === 0) {
-            socket.emit('userAttemptFail', userAttempt[1])
+            socket.emit('userAttemptFail', {'userName': userAttempt['userName'], 'userColor': userAttempt['userColor']})
             return;
         } else {
             for (let [index, keyvalue] of matches.entries()) {
                 encodedWord.split("").forEach((value, position) => {
                     if (value === "_" && position === keyvalue * 2) {
-                        document.getElementById('chatMessages').innerHTML += `<br><strong><span style="color: green;">★ ${userAttempt[1]} has guessed letter ${userAttempt[0]}!</span></strong>`;
+                        document.getElementById('chatMessages').innerHTML += `<br><strong><span style="color: green;">★ <span style="color: ${userAttempt['userColor']}">${userAttempt['userName']}</span> has guessed letter ${userAttempt['userMessage']}!</span></strong>`;
                         chatScroll.scrollTop = chatScroll.scrollHeight;
-                        newWord.push(userAttempt[0])
+                        newWord.push(userAttempt['userMessage'])
                     } else {
                         newWord.push(value)
                     }
@@ -215,7 +215,7 @@ function showUserAttempt(userAttempt) {
             });
 
             if (wordIsComplete) {
-                document.getElementById('chatMessages').innerHTML = currentChat + `<br><strong><span style="color: green;">★ ${userAttempt[1]} has guessed the word! ( ${privateWord} )</span></strong>`
+                document.getElementById('chatMessages').innerHTML = currentChat + `<br><strong><span style="color: green;">★ <span style="color: ${userAttempt['userColor']}">${userAttempt['userName']}</span> has guessed the word! ( ${privateWord} )</span></strong>`
                 document.getElementById('chatMessages').innerHTML += "<br>"
                 document.getElementById('chatMessages').innerHTML += "<br><strong style='color: red'>⚠ Going back to lobby in 10 seconds... </strong>"
                 chatScroll.scrollTop = chatScroll.scrollHeight;
@@ -225,9 +225,9 @@ function showUserAttempt(userAttempt) {
             }
         }
     } else {
-        if (userAttempt[0] === privateWord) {
-            document.getElementById('codedWord').innerHTML = userAttempt[0].split('').join(' ');
-            document.getElementById('chatMessages').innerHTML += `<br><strong><span style="color: green;">★ ${userAttempt[1]} has guessed the word! ( ${privateWord} )</span></strong>`
+        if (userAttempt['userMessage'] === privateWord) {
+            document.getElementById('codedWord').innerHTML = userAttempt['userMessage'].split('').join(' ');
+            document.getElementById('chatMessages').innerHTML += `<br><strong><span style="color: green;">★ <span style="color: ${userAttempt['userColor']}">${userAttempt['userName']}</span> has guessed the word! ( ${privateWord} )</span></strong>`
             document.getElementById('chatMessages').innerHTML += "<br>"
             document.getElementById('chatMessages').innerHTML += "<br><strong style='color: red'>⚠ Going back to lobby in 10 seconds... </strong>"
             chatScroll.scrollTop = chatScroll.scrollHeight;
@@ -235,7 +235,7 @@ function showUserAttempt(userAttempt) {
                 socket.emit('gameFinished')
             }, 7000)
         } else {
-            socket.emit('userAttemptFail', userAttempt[1])
+            socket.emit('userAttemptFail', {'userName': userAttempt['userName'], 'userColor': userAttempt['userColor']})
         }
     }
 
@@ -248,7 +248,7 @@ function showUserAttempt(userAttempt) {
 }
 
 function removeAttempt(userWhoFail) {
-    if (userWhoFail === user) {
+    if (userWhoFail['userName'] === user) {
         allAttempts -= 1;
         document.getElementById('thisUserAttempts').innerHTML = `Attempts Left: ${allAttempts}`;
         checkUserAttempts(allAttempts, userWhoFail);
@@ -285,10 +285,10 @@ function checkUserAttempts(userAttempts, currentUser) {
 
 function userLostResponse(userWhoLost) {
     var chatScroll = document.getElementById('chatMessages');
-    if (userWhoLost === user) {
+    if (userWhoLost['userName'] === user) {
         document.getElementById('userMessage').disabled = true;
     }
-    document.getElementById('chatMessages').innerHTML += `<br><strong style='color: red'>⚠ ${userWhoLost} couldn't guess the word! (This user is not able to send messages until the game is over)</strong>`
+    document.getElementById('chatMessages').innerHTML += `<br><strong style='color: red'>⚠ <span style="color: ${userWhoLost['userColor']}">${userWhoLost['userName']}</span> couldn't guess the word! (This user is not able to send messages until the game is over)</strong>`
     chatScroll.scrollTop = chatScroll.scrollHeight;
 }
 
@@ -325,6 +325,7 @@ function resetGame() {
     userIsReady = false;
     newWord = []
     allAttempts = 27;
+    userColor = setUserColor()
 
     var table = document.getElementById("usersConnected");
 
