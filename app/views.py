@@ -9,6 +9,8 @@ def index_page():
 		Error = request.args['error']
 		if (Error == "GameAlreadyStarted"):
 			return render_template('index.html', invalid="Game already started! Please wait until the game has finished.")
+		elif (Error == "EmptyUserName"):
+			return render_template('index.html', invalid="Don't leave nickname empty!")
 		return render_template('index.html', invalid="The nickname you choose is already in lobby! Choose a different one.")
 	except:
 		pass
@@ -21,6 +23,9 @@ def lobby_page():
 
 	if (UsersConfig.isGameStarted()):
 		return redirect(url_for('index_page', error="GameAlreadyStarted"))
+	
+	if (len(userName) <= 0):
+		return redirect(url_for('index_page', error="EmptyUserName"))
 
 	if (UsersConfig.isUniqueUserName(userName)):		
 		session['currentUser'] = [userName, False, False]
