@@ -93,6 +93,6 @@ table, th, td {
     border: 1px solid gray;
 }
 
-#startButton {
-    display: none;
+#lobbySettings:hover {
+    color: red;
 }

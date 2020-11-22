@@ -21,6 +21,9 @@ def index_page():
 def lobby_page():
 	userName = request.form['userName']
 
+	session['currentUser'] = {'userName': userName, 'userIsReady': False, 'userHasLost': False}
+	return render_template('game.html', userName = userName)
+
 	if (UsersConfig.isGameStarted()):
 		return redirect(url_for('index_page', error="GameAlreadyStarted"))
 	
@@ -75,6 +78,13 @@ def prepare_user(userToPrepare):
 	print(UsersConfig.getUserList())
 	emit('updateCounterAndUser', [UsersConfig.getReadyCounter(), [userToPrepare]], broadcast = True)
 	emit('updateSelfStatus')
+
+@socketio.on('userUnReady')
+def unprepare_user(userToUnPrepare):
+	UsersConfig.minusReadyCounter()
+	UsersConfig.unprepareUser(userToUnPrepare)
+	emit('quitReadySymbolFromTable', userToUnPrepare, broadcast = True)
+	emit('updateCounterAndUser', [UsersConfig.getReadyCounter(), UsersConfig.getUsersReady()], broadcast = True)
 
 @socketio.on('startGameRequest')
 def start_game_request():

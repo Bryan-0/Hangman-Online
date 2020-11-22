@@ -71,9 +71,9 @@
             <p></p>
             <p> Users ready: <span id="readyCounter"></span> </p>
             <p></p>
-            <button onclick="userReady()" style="background-color: lightgreen; border-radius: 10px;" > READY </button>
+            <button id="readyButton" onclick="userReady(this)" style="background-color: lightgreen; border-radius: 10px;" > READY </button>
             <br>
-            <small id="readyStatus" style="color: red"> (You are NOT ready) </small>
+            <small id="readyStatus" style="color: red"> (You are NOT READY) </small>
             <p></p>
             <button id="startButton" onclick="sendStartGameRequest()" style="font-size: 20px; color: black; background-color: lightgreen; border-radius: 5px;"> START GAME! </button>
             <br>
@@ -106,6 +106,10 @@
 
         socket.on('updateCounterAndUser', (params) => {
             updateReadyCounter(params);
+        });
+
+        socket.on('quitReadySymbolFromTable', (userName) => {
+            quitReadySymbolFromTable(userName);
         });
 
         socket.on('updateSelfStatus', () => {

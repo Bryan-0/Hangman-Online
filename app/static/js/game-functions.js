@@ -17,11 +17,34 @@ function setUserColor() {
     return possibleColors[Math.floor(Math.random() * possibleColors.length)];
 }
 
-function userReady() {
+function userReady(button) {
     if (userIsReady) {
-        console.log("User is ready.")
+        socket.emit('userUnReady', user)
+        button.innerHTML = "READY"
+        button.style.background = 'lightgreen';
+        button.style.color = 'black';
+        userIsReady = false;
+        document.getElementById("readyStatus").innerHTML = "(You are NOT READY)";
+        document.getElementById("readyStatus").style.color = 'red';
     } else {
         socket.emit('userReady', user)
+        button.innerHTML = "UNREADY"
+        button.style.background = 'red';
+        button.style.color = 'white';
+    }
+}
+
+function quitReadySymbolFromTable(userName) {
+    var table = document.getElementById("usersConnected");
+
+    for ( let [i,row] of [...table.rows].entries() ) {
+        for( let [j,cell] of [...row.cells].entries() ) {
+            console.log(`[${i}] = ${cell.innerText}`)
+
+            if (cell.innerText === `✅ ${userName}`) {
+                cell.innerHTML = userName;
+            }
+        }
     }
 }
 
@@ -166,6 +189,12 @@ function loadGame(wordToGuess) {
     document.getElementById('waitingForWord').style.display = 'none';
     document.getElementById('currentTitle').innerHTML = 'Game';
     document.getElementById('codedWord').innerHTML = wordToGuess[1];
+
+    document.getElementById("readyStatus").innerHTML = "(You are NOT READY)";
+    document.getElementById("readyStatus").style.color = 'red';
+    document.getElementById("readyButton").style.background = 'lightgreen';
+    document.getElementById("readyButton").innerHTML = 'READY';
+    document.getElementById("readyButton").style.color = 'black';
     
     if (!userIsHost) {
         document.getElementById('thisUserAttempts').innerHTML = `Attempts Left: ${allAttempts}`;
@@ -312,15 +341,20 @@ function noOneGuessedTheWord(word) {
 }
 
 function resetGame() {
-    document.getElementById('chatMessages').innerHTML = "";
+    document.getElementById('chatMessages').innerHTML = "<center><strong>Chat</strong></center>";
     document.getElementById('chatContainer').style.display = 'none';
     document.getElementById('gamePanel').style.display = 'none';
+    document.getElementById('waitingForWord').style.display = 'none';
+    document.getElementById('userChooseControl').style.display = 'none';
     document.getElementById('readyStatus').style.color = 'red';
-    document.getElementById('readyStatus').innerHTML = " (You are NOT ready) ";
-    document.getElementById('startButton').style.display = 'none';
+    document.getElementById('readyStatus').innerHTML = " (You are NOT READY) ";
+    document.getElementById("readyButton").style.background = 'lightgreen';
+    document.getElementById("readyButton").innerHTML = 'READY';
+    document.getElementById("readyButton").style.color = 'black';
     document.getElementById('startError').innerHTML = "";
     document.getElementById('privateWord').innerHTML = "";
     document.getElementById('thisUserAttempts').innerHTML = "";
+    document.getElementById('currentTitle').innerHTML = "Lobby";
     document.getElementById('wordToGuess').value = "";
     document.getElementById('userMessage').value = "";
     document.getElementById('MessageType').value = "Letter";

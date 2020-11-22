@@ -47,6 +47,11 @@ class Users:
             if value['userName'] == user:
                 self.userList[index] = {'userName': value['userName'], 'userIsReady': True, 'userHasLost': False}
     
+    def unprepareUser(self, user):
+        for users in self.userList:
+            if users['userName'] == user:
+                users['userIsReady'] = False
+
     def removeUserFromList(self, user):
         for index, value in enumerate(self.userList):
             if value['userName'] == user:
