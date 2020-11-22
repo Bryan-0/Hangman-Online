@@ -208,7 +208,7 @@ function showUserAttempt(userAttempt) {
     let wordIsComplete = true;
     var chatScroll = document.getElementById('chatMessages');
     let currentChat = document.getElementById('chatMessages').innerHTML;
-    document.getElementById('chatMessages').innerHTML = currentChat + `<br>- <strong style="color: ${userAttempt['userColor']}">${userAttempt['userName']}</strong>: ${userAttempt['userMessage']}`;
+    document.getElementById('chatMessages').innerHTML = currentChat + `<br>- <strong style="color: ${userAttempt['userColor']}">${userAttempt['userName']}</strong>: ${escapeHTML(userAttempt['userMessage'])}`;
     chatScroll.scrollTop = chatScroll.scrollHeight;
 
     if (userAttempt['isNotRated']) return;
@@ -403,6 +403,15 @@ function notEnoughAuthority() {
 
 function hostLeavedMessage(userName) {
     document.getElementById('startError').innerHTML = `Host (${userName}) has disconnected from the match.`;
+}
+
+function escapeHTML(text) {
+    return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 var inputMessage = document.getElementById("userMessage");       
