@@ -21,9 +21,6 @@ def index_page():
 def lobby_page():
 	userName = request.form['userName']
 
-	session['currentUser'] = {'userName': userName, 'userIsReady': False, 'userHasLost': False}
-	return render_template('game.html', userName = userName)
-
 	if (UsersConfig.isGameStarted()):
 		return redirect(url_for('index_page', error="GameAlreadyStarted"))
 	
@@ -31,7 +28,7 @@ def lobby_page():
 		return redirect(url_for('index_page', error="EmptyUserName"))
 
 	if (UsersConfig.isUniqueUserName(userName)):		
-		session['currentUser'] = {'userName': userName, 'userIsReady': False, 'userHasLost': False}
+		session['currentUser'] = {'userName': userName, 'userIsReady': False, 'userHasLost': False, 'userIsHost': False}
 		return render_template('game.html', userName = userName)
 	else:
 		return redirect(url_for('index_page', error="UserNameNotUnique"))
@@ -44,6 +41,16 @@ def connection():
 @socketio.on('disconnect')
 def disconnection():
 	resetGame = False
+	hostLeaved = False
+
+	if (UsersConfig.isHost(session['currentUser']['userName']) and UsersConfig.isGameStarted()):
+		UsersConfig.setGameStatus(False)
+		UsersConfig.clearPrivateWord()
+		UsersConfig.clearReadyCounter()
+		UsersConfig.clearUserStatus()
+		resetGame = True
+		hostLeaved = True
+
 	UsersConfig.removeUserFromList(session['currentUser']['userName'])
 
 	if (len(UsersConfig.getUserList()) <= 1 and UsersConfig.isGameStarted()):
@@ -52,18 +59,19 @@ def disconnection():
 		UsersConfig.clearReadyCounter()
 		UsersConfig.clearUserStatus()
 		resetGame = True
-		
-		
 
 	emit('updateCounterAndUser', [UsersConfig.getReadyCounter(), UsersConfig.getUsersReady()], broadcast = True)
 	emit('removeUser', session['currentUser'], broadcast = True)
 
-	session.pop('currentUser', None)
 	print(UsersConfig.getUserList())
 	
 	if resetGame:
 		print(UsersConfig.getUserList())
 		emit('resetGame', broadcast = True)
+	if hostLeaved:
+		emit('hostLeaved', session['currentUser']['userName'], broadcast = True)
+
+	session.pop('currentUser', None)
 
 @socketio.on('AddUserName')
 def add_user(user):
@@ -93,6 +101,7 @@ def start_game_request():
 		selectedUserName = UsersConfig.chooseRandomPlayer()
 		UsersConfig.setPlayerLostStatus(selectedUserName['userName'])
 		print(UsersConfig.getUserList())
+		UsersConfig.setPlayerAsHost(selectedUserName['userName'])
 		emit('startGameProcess', selectedUserName, broadcast = True)
 		emit('chooseWord', selectedUserName, broadcast = True)
 	else:

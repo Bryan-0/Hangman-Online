@@ -160,6 +160,10 @@
             resetGame();
         });
 
+        socket.on('hostLeaved', (userName) => {
+            hostLeavedMessage(userName);
+        });
+
     </script>
 </body>
 

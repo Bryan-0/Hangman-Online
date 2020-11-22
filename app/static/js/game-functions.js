@@ -401,6 +401,10 @@ function notEnoughAuthority() {
     document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
 }
 
+function hostLeavedMessage(userName) {
+    document.getElementById('startError').innerHTML = `Host (${userName}) has disconnected from the match.`;
+}
+
 var inputMessage = document.getElementById("userMessage");       
 inputMessage.addEventListener("keyup", function(event) {
     if (event.keyCode === 13) {

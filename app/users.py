@@ -45,7 +45,7 @@ class Users:
     def prepareUser(self, user):
         for index, value in enumerate(self.userList):
             if value['userName'] == user:
-                self.userList[index] = {'userName': value['userName'], 'userIsReady': True, 'userHasLost': False}
+                self.userList[index] = {'userName': value['userName'], 'userIsReady': True, 'userHasLost': False, 'userIsHost': False}
     
     def unprepareUser(self, user):
         for users in self.userList:
@@ -86,6 +86,18 @@ class Users:
             if user['userName'] == userWhoLost:
                 user['userHasLost'] = True
     
+    def setPlayerAsHost(self, userToBeHost):
+        for user in self.userList:
+            if user['userName'] == userToBeHost:
+                user['userIsHost'] = True
+    
+    def isHost(self, userName):
+        for user in self.userList:
+            if user['userName'] == userName:
+                if user['userIsHost']:
+                    return True
+        return False
+    
     def chooseRandomPlayer(self):
         return random.choice(self.userList)
 
@@ -99,6 +111,7 @@ class Users:
         for users in self.userList:
             users['userIsReady'] = False
             users['userHasLost'] = False
+            users['userIsHost'] = False
     
     def clearPrivateWord(self):
         self.privateWord = ""
