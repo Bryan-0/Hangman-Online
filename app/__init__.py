@@ -1,5 +1,5 @@
 from flask import Flask, render_template, Response, request, redirect, url_for, send_from_directory, session, g
-from flask_socketio import SocketIO, send, emit
+from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_sslify import SSLify
 from datetime import datetime
 
